@@ -8,45 +8,54 @@ defmodule ContadorFacturasTest do
   end
 
   defmodule FakeAccumulator do
-    def start do
-      send self(), {:accumulator, :start}
+    def start(name) do
+      send self(), {:accumulator, :start, name}
     end
 
-    def add(amount) do
-      send self(), {:accumulator, :add, amount}
+    def add(name, amount) do
+      send self(), {:accumulator, :add, name, amount}
     end
 
-    def get do
-      send self(), {:accumulator, :get}
-      "--number-stored-in-accumuldator--"
+    def get(name) do
+      send self(), {:accumulator, :get , name}
+      "--"<>Atom.to_string(name)<>"-stored-in-accumulator--"
     end
   end
 
   test "starts an accumulator to track number of invoices" do
     count_invoices("--some-company-id--")
-    assert_received {:accumulator, :start}
+    assert_received {:accumulator, :start, :invoices}
+  end
+
+  test "starts an accumulator to track number of requests" do
+    count_invoices("--some-company-id--")
+    assert_received {:accumulator, :start, :requests}
   end
 
   test "requests the number of invoices of 2017 using the company id" do
     count_invoices("--some-company-id--")
     assert_received {:invoice_store, :fetch_invoices, "--some-company-id--", ~D[2017-01-01], ~D[2017-12-31]}
+    assert_received {:accumulator, :add, :requests, 1}
   end
 
-  test "returns the result of accumulator after request finish" do
+  test "returns the result of both accumulators after request finish" do
     response = count_invoices("--some-company-id--")
-    assert_received {:accumulator, :get}
-    assert response == "--number-stored-in-accumuldator--"
+    assert_received {:accumulator, :get, :invoices}
+    assert_received {:accumulator, :get, :requests}
+    assert response.invoices == "--invoices-stored-in-accumulator--"
+    assert response.requests == "--requests-stored-in-accumulator--"
   end
 
   test "if invoice store could not count invoices, it divides the request in two" do
     could_not_count_invoices("--company-id--", ~D[2017-01-01], ~D[2017-12-31])
     assert_received {:invoice_store, :fetch_invoices, "--company-id--", ~D[2017-01-01], ~D[2017-07-02]}
     assert_received {:invoice_store, :fetch_invoices, "--company-id--", ~D[2017-07-03], ~D[2017-12-31]}
+    assert_received {:accumulator, :add, :requests, 2}
   end
 
   test "if invoices were counted, it adds amount to accumulator" do
     invoices_counted(50)
-    assert_received {:accumulator, :add, 50}
+    assert_received {:accumulator, :add, :invoices, 50}
   end
 
   defp count_invoices(company_id) do
@@ -54,7 +63,7 @@ defmodule ContadorFacturasTest do
   end
 
   defp could_not_count_invoices(company_id, start_date, finish_date) do
-    ContadorFacturas.could_not_count_invoices(company_id, start_date, finish_date, FakeInvoiceStore)
+    ContadorFacturas.could_not_count_invoices(company_id, start_date, finish_date, FakeInvoiceStore, FakeAccumulator)
   end
 
   defp invoices_counted(amount) do
