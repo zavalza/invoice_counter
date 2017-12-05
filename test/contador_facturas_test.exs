@@ -15,6 +15,11 @@ defmodule ContadorFacturasTest do
     def add(amount) do
       send self(), {:accumulator, :add, amount}
     end
+
+    def get do
+      send self(), {:accumulator, :get}
+      "--number-stored-in-accumuldator--"
+    end
   end
 
   test "starts an accumulator to track number of invoices" do
@@ -25,6 +30,12 @@ defmodule ContadorFacturasTest do
   test "requests the number of invoices of 2017 using the company id" do
     count_invoices("--some-company-id--")
     assert_received {:invoice_store, :fetch_invoices, "--some-company-id--", ~D[2017-01-01], ~D[2017-12-31]}
+  end
+
+  test "returns the result of accumulator after request finish" do
+    response = count_invoices("--some-company-id--")
+    assert_received {:accumulator, :get}
+    assert response == "--number-stored-in-accumuldator--"
   end
 
   test "if invoice store could not count invoices, it divides the request in two" do

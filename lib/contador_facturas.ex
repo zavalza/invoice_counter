@@ -29,6 +29,7 @@ defmodule ContadorFacturas do
   def count_invoices(company_id, invoice_store \\ InvoiceStore, accumulator \\ Accumulator) do
     accumulator.start()
     invoice_store.fetch_invoices(company_id, ~D[2017-01-01], ~D[2017-12-31])
+    accumulator.get()
   end
 
   def could_not_count_invoices(company_id, start_date, finish_date, invoice_store \\ InvoiceStore) do
