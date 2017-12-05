@@ -38,8 +38,9 @@ defmodule ContadorFacturas do
     days_in_between = Enum.count(Date.range(start_date, finish_date))
     half_of_days = trunc(Float.floor(days_in_between/2))
     half_date = Date.add(start_date, half_of_days)
-    invoice_store.fetch_invoices(company_id, start_date, half_date)
-    invoice_store.fetch_invoices(company_id, Date.add(half_date, 1), finish_date)
+    first_fecth = Task.async fn -> invoice_store.fetch_invoices(company_id, start_date, half_date) end
+    second_fetch = Task.async fn -> invoice_store.fetch_invoices(company_id, Date.add(half_date, 1), finish_date) end
+    Enum.map([first_fecth, second_fetch], &Task.await/1)
     accumulator.add(:requests, 2)
   end
 
