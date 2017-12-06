@@ -5,6 +5,10 @@ defmodule ContadorFacturasTest do
     def fetch_invoices(company_id, start_date, finish_date) do
       send self(), {:invoice_store, :fetch_invoices, company_id, start_date, finish_date}
     end
+
+    def fetch_two_ranges_in_parallel(company_id, start_date, half_date, finish_date) do
+      send self(), {:invoice_store, :fetch_two_ranges_in_parallel, company_id, start_date, half_date, finish_date}
+    end
   end
 
   defmodule FakeAccumulator do
@@ -48,8 +52,7 @@ defmodule ContadorFacturasTest do
 
   test "if invoice store could not count invoices, it divides the request in two" do
     could_not_count_invoices("--company-id--", ~D[2017-01-01], ~D[2017-12-31])
-    assert_received {:invoice_store, :fetch_invoices, "--company-id--", ~D[2017-01-01], ~D[2017-07-02]}
-    assert_received {:invoice_store, :fetch_invoices, "--company-id--", ~D[2017-07-03], ~D[2017-12-31]}
+    assert_received {:invoice_store, :fetch_two_ranges_in_parallel, "--company-id--", ~D[2017-01-01], ~D[2017-07-02], ~D[2017-12-31]}
     assert_received {:accumulator, :add, :requests, 2}
   end
 

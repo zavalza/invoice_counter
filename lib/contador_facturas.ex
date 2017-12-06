@@ -8,6 +8,12 @@ defmodule ContadorFacturas do
       IO.inspect company_id<>" "<>Date.to_string(start_date)<>" "<>Date.to_string(finish_date)
       ResponseProcessor.process(response, company_id, start_date, finish_date)
     end
+
+    def fetch_two_ranges_in_parallel(company_id, start_date, half_date, finish_date) do
+      first_fecth = Task.async fn -> fetch_invoices(company_id, start_date, half_date) end
+      second_fetch = Task.async fn -> fetch_invoices(company_id, Date.add(half_date, 1), finish_date) end
+      Enum.map([first_fecth, second_fetch], &Task.await/1)
+    end
   end
 
   defmodule Accumulator do
@@ -38,9 +44,7 @@ defmodule ContadorFacturas do
     days_in_between = Enum.count(Date.range(start_date, finish_date))
     half_of_days = trunc(Float.floor(days_in_between/2))
     half_date = Date.add(start_date, half_of_days)
-    first_fecth = Task.async fn -> invoice_store.fetch_invoices(company_id, start_date, half_date) end
-    second_fetch = Task.async fn -> invoice_store.fetch_invoices(company_id, Date.add(half_date, 1), finish_date) end
-    Enum.map([first_fecth, second_fetch], &Task.await/1)
+    invoice_store.fetch_two_ranges_in_parallel(company_id, start_date, half_date, finish_date)
     accumulator.add(:requests, 2)
   end
 
