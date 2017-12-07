@@ -61,6 +61,10 @@ defmodule InvoiceCounterTest do
     assert_received {:accumulator, :add, :invoices, 50}
   end
 
+  test "if there is an error fecthing invoices, it returns an error message" do
+    assert_raise RuntimeError, "There was an error during fetching, verify your params", fn -> error_fetching_invoices() end
+  end
+
   defp count(company_id) do
     InvoiceCounter.count(company_id, FakeInvoiceStore, FakeAccumulator)
   end
@@ -71,5 +75,9 @@ defmodule InvoiceCounterTest do
 
   defp invoices_counted(amount) do
     InvoiceCounter.invoices_counted(amount, FakeAccumulator)
+  end
+
+  defp error_fetching_invoices do
+    InvoiceCounter.error_fetching_invoices()
   end
 end

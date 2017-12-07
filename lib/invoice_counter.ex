@@ -18,4 +18,8 @@ defmodule InvoiceCounter do
   def invoices_counted(amount, accumulator \\ Accumulator) do
     accumulator.add(:invoices, amount)
   end
+
+  def error_fetching_invoices do
+    raise "There was an error during fetching, verify your params"
+  end
 end

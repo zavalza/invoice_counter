@@ -5,6 +5,8 @@ defmodule ResponseProcessor do
     else
       if is_integer(response) do
         invoice_counter.invoices_counted(response)
+      else
+        invoice_counter.error_fetching_invoices()
       end
     end
   end
