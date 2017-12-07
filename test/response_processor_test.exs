@@ -16,21 +16,21 @@ defmodule ResponseProcessorTest do
   end
 
   test "notifies invoice counter when store could not count invoices" do
-    process("Hay más de 100 resultados", "--company-id-of-request--", "--start-date-of-request--", "--finish-date-of-request--")
+    process("Hay más de 100 resultados")
     assert_received {:invoice_counter, :could_not_count_invoices, "--company-id-of-request--", "--start-date-of-request--", "--finish-date-of-request--"}
   end
 
   test "notifies invoice counter when a number of invoices is retrieved" do
-    process(50, "--company-id-of-request--", "--start-date-of-request--", "--finish-date-of-request--")
+    process(50)
     assert_received {:invoice_counter, :invoices_counted, 50}
   end
 
   test "notifies invoice counter if it receives an error" do
-    process("Argumentos inválidos", "--company-id-of-request--", "--start-date-of-request--", "--finish-date-of-request--")
+    process("Argumentos inválidos")
     assert_received {:invoice_counter, :error_fetching_invoices}
   end
 
-  defp process(response, company_id, start_date, finish_date) do
-    ResponseProcessor.process(response, company_id, start_date, finish_date, FakeInvoiceCounter)
+  defp process(response) do
+    ResponseProcessor.process(response, "--company-id-of-request--", "--start-date-of-request--", "--finish-date-of-request--", FakeInvoiceCounter)
   end
 end
