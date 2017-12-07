@@ -8,9 +8,7 @@ use Mix.Config
 # if you want to provide default values for your application for
 # 3rd-party users, it should be done in your "mix.exs" file.
 
-# You can configure for your application as:
-#
-#     config :contador_facturas, key: :value
+config :invoice_counter, env: Mix.env
 #
 # And access this configuration in your application as:
 #

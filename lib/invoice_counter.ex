@@ -1,4 +1,12 @@
 defmodule InvoiceCounter do
+  def main(args) do
+    args |> parse_args |> count |> IO.inspect
+  end
+
+  def count(%{parsing_error: parsing_error}) do
+    parsing_error
+  end
+
   def count(company_id, invoice_store \\ InvoiceStore, accumulator \\ Accumulator) do
     accumulator.start(:invoices)
     accumulator.start(:requests)
@@ -21,5 +29,14 @@ defmodule InvoiceCounter do
 
   def error_fetching_invoices do
     raise "There was an error during fetching, verify your params"
+  end
+
+  defp parse_args([]) do
+    %{parsing_error: "Please provide a company id"}
+  end
+
+  defp parse_args(args) do
+    {_, company_id, _} = OptionParser.parse(args)
+    List.to_string(company_id)
   end
 end
